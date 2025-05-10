@@ -1,10 +1,30 @@
 using System.Threading.RateLimiting;
+using Amazon.DynamoDBv2;
+using Amazon.DynamoDBv2.DataModel;
+using Asp.Versioning;
 using FastEndpoints;
+using FastEndpoints.AspVersioning;
 using Soms.Shared.Cors;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddFastEndpoints();
+#region Configure AWS Options
+var awsOptions = builder.Configuration.GetAWSOptions();
+builder.Services.AddDefaultAWSOptions(awsOptions);
+builder.Services.AddAWSService<IAmazonDynamoDB>();
+builder.Services.AddSingleton<IDynamoDBContext, DynamoDBContext>();
+#endregion
+
+builder
+    .Services.AddFastEndpoints()
+    .AddVersioning(o =>
+    {
+        o.DefaultApiVersion = new(1.0);
+        o.AssumeDefaultVersionWhenUnspecified = true;
+        o.ApiVersionReader = new HeaderApiVersionReader("X-Api-Version");
+    });
+VersionSets.CreateApi(">>ShortenerApi<<", v => v.HasApiVersion(new(1.0)));
+
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.ConfigureAppCors();
 builder.Services.AddOpenApi();
@@ -54,6 +74,12 @@ app.MapGet("/", () => "Url Shortener API is running!")
     .Produces<string>(StatusCodes.Status200OK)
     .Produces(StatusCodes.Status404NotFound);
 
-app.MapFastEndpoints();
+app.UseFastEndpoints(c =>
+{
+    // c.Versioning.DefaultVersion = 1;
+    // c.Versioning.Prefix = "v";
+    // c.Versioning.PrependToRoute = true;
+    c.Endpoints.RoutePrefix = "api";
+});
 
 app.Run();
