@@ -1,25 +1,20 @@
-using System.Security.Cryptography;
-using System.Text;
 using System.Text.Json;
 using Amazon.DynamoDBv2.DataModel;
 using FastEndpoints;
 using FastEndpoints.AspVersioning;
-using UrlShortener.API.Models;
 using UrlShortener.API.Models.Dtos;
+using UrlShortener.API.Models.Mappers;
 using UrlShortener.API.Response;
 
 namespace UrlShortener.API.EndPoints
 {
-    public class ShortenUrlEndPoint(
-        ILogger<ShortenUrlEndPoint> _logger,
-        IDynamoDBContext _database,
-        IConfiguration _config
-    ) : Endpoint<ShortenUrlDto, Result<ShortenUrlRes>>
+    public class ShortenUrlEndPoint(ILogger<ShortenUrlEndPoint> _logger, IDynamoDBContext _database)
+        : Endpoint<ShortenUrlDto, Result<ShortenUrlRes>, ShortenUrlEndPointMapper>
     {
         public override void Configure()
         {
             _logger.LogInformation("Configuring ShortenUrlEndPoint. Method: 'Post', Path: '/api/shorten', Version 1.0");
-            Post("/shorten");
+            Post("/shorten-url");
             AllowAnonymous();
             // Version(1, 0);
             Options(x => x.WithVersionSet(">>ShortenerApi<<").MapToApiVersion(1.0));
@@ -31,23 +26,11 @@ namespace UrlShortener.API.EndPoints
             try
             {
                 _logger.LogInformation($"Processing Request: {JsonSerializer.Serialize(req)}");
-                ShortenUrlRes response = new();
-                var baseUrl = _config.GetValue<string>("LinkBaseUrl");
-                var shortCode = await GenerateShortCode();
-                response.ShortCode = shortCode;
-                response.Link = new Uri($"{baseUrl}/{shortCode}");
-                UrlsTable data = new()
-                {
-                    ShortCode = shortCode,
-                    LongUrl = req.LongUrl,
-                    ExpiryDate = req.Expiration ?? DateTime.MaxValue,
-                    CreatedAt = DateTime.UtcNow,
-                    DeletionDate = req.Expiration ?? DateTime.MaxValue,
-                    IsActive = true,
-                };
+                var data = Map.ToEntity(req);
                 await _database.SaveAsync(data, ct);
-                var result = Result<ShortenUrlRes>.Success(response, "Url Shortened successfully");
+                var response = Map.FromEntity(data);
                 _logger.LogInformation("Shortening Url Completed. Returning Response");
+                var result = Result<ShortenUrlRes>.Success(response, "Url Shortened successfully");
                 await SendAsync(result, cancellation: ct);
                 _logger.LogInformation("Response sent successfully.");
             }
@@ -57,21 +40,6 @@ namespace UrlShortener.API.EndPoints
                 var result = Result<ShortenUrlRes>.Failure("An error occurred while processing your request.");
                 await SendAsync(result, cancellation: ct);
             }
-        }
-
-        private async Task<bool> CheckAlias(string customAlias)
-        {
-            var url = await _database.LoadAsync<UrlsTable>(customAlias);
-            return url == null;
-        }
-
-        private async Task<string> GenerateShortCode()
-        {
-            var shortCode = MD5.HashData(Encoding.UTF8.GetBytes(Guid.NewGuid().ToString()))
-                .Select(x => x.ToString("x2"))
-                .Aggregate((x, y) => x + y)[..6];
-            var notExist = await CheckAlias(shortCode);
-            return notExist ? shortCode : await GenerateShortCode();
         }
     }
 }
