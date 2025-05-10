@@ -26,17 +26,17 @@ builder
 VersionSets.CreateApi(">>ShortenerApi<<", v => v.HasApiVersion(new(1.0)));
 
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.ConfigureAppCors();
 builder.Services.AddOpenApi();
+
+builder.Services.ConfigureAppCors();
 builder.Services.AddResponseCompression();
+
 builder.Services.AddRateLimiter(options =>
 {
     options.OnRejected = async (context, cancellationToken) =>
     {
-        // Custom rejection handling logic
         context.HttpContext.Response.StatusCode = StatusCodes.Status429TooManyRequests;
         context.HttpContext.Response.Headers.RetryAfter = "60";
-
         await context.HttpContext.Response.WriteAsync(
             "Rate limit exceeded. Please try again later.",
             cancellationToken
@@ -54,7 +54,6 @@ builder.Services.AddRateLimiter(options =>
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
@@ -79,6 +78,12 @@ app.UseFastEndpoints(c =>
     // c.Versioning.DefaultVersion = 1;
     // c.Versioning.Prefix = "v";
     // c.Versioning.PrependToRoute = true;
+    // c.Endpoints.Configurator = ep =>
+    // {
+    //     ep.AllowAnonymous();
+    //     ep.Options(b => b.RequireCors());
+    //     ep.Options(b => b.RequireHost("https://example.com"));
+    // };
     c.Endpoints.RoutePrefix = "api";
 });
 

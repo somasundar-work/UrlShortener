@@ -3,7 +3,6 @@ using System.Text;
 using Amazon.DynamoDBv2.DataModel;
 using FastEndpoints;
 using UrlShortener.API.Models.Dtos;
-using UrlShortener.API.Response;
 
 namespace UrlShortener.API.Models.Mappers
 {
@@ -14,13 +13,14 @@ namespace UrlShortener.API.Models.Mappers
         {
             var shortCode = GenerateShortCode();
             shortCode.Wait();
+            var expiry = r.Expiration ?? DateTime.MaxValue.AddDays(-7);
             return new()
             {
                 ShortCode = shortCode.Result,
                 LongUrl = r.LongUrl,
-                ExpiryDate = r.Expiration ?? DateTime.MaxValue,
+                ExpiryDate = expiry,
                 CreatedAt = DateTime.UtcNow,
-                DeletionDate = r.Expiration ?? DateTime.MaxValue,
+                DeletionDate = expiry.AddDays(7),
                 IsActive = true,
             };
         }
