@@ -26,7 +26,6 @@ builder
 VersionSets.CreateApi(">>ShortenerApi<<", v => v.HasApiVersion(new(1.0)));
 
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddOpenApi();
 
 builder.Services.ConfigureAppCors();
 builder.Services.AddResponseCompression();
@@ -53,11 +52,6 @@ builder.Services.AddRateLimiter(options =>
 });
 
 var app = builder.Build();
-
-if (app.Environment.IsDevelopment())
-{
-    app.MapOpenApi();
-}
 
 app.UseHttpsRedirection();
 
