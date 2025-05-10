@@ -3,8 +3,8 @@
 	"tasks": [
 		{
 			"type": "dotnet",
-			"task": "build /Users/somasundar/RiderProjects/UrlShortener/UrlShortener.API/UrlShortener.API.csproj",
-			"file": "/Users/somasundar/RiderProjects/UrlShortener/UrlShortener.API/UrlShortener.API.csproj",
+			"task": "build ${workspaceFolder}/UrlShortener.API/UrlShortener.API.csproj",
+			"file": "${workspaceFolder}/UrlShortener.API/UrlShortener.API.csproj",
 			"group": "build",
 			"problemMatcher": [],
 			"label": "build"
