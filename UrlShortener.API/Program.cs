@@ -13,6 +13,7 @@ var awsOptions = builder.Configuration.GetAWSOptions();
 builder.Services.AddDefaultAWSOptions(awsOptions);
 builder.Services.AddAWSService<IAmazonDynamoDB>();
 builder.Services.AddSingleton<IDynamoDBContext, DynamoDBContext>();
+builder.Services.AddAWSLambdaHosting(LambdaEventSource.RestApi);
 #endregion
 
 builder
@@ -67,7 +68,7 @@ app.MapGet("/", () => "Url Shortener API is running!")
     .Produces<string>(StatusCodes.Status200OK)
     .Produces(StatusCodes.Status404NotFound);
 
-app.UseFastEndpoints(c =>
+app.MapFastEndpoints(c =>
 {
     // c.Versioning.DefaultVersion = 1;
     // c.Versioning.Prefix = "v";
@@ -78,7 +79,7 @@ app.UseFastEndpoints(c =>
     //     ep.Options(b => b.RequireCors());
     //     ep.Options(b => b.RequireHost("https://example.com"));
     // };
-    c.Endpoints.RoutePrefix = "api";
+    c.Endpoints.RoutePrefix = "api/url-shortener";
 });
 
 app.Run();

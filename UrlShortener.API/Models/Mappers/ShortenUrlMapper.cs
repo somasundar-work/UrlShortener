@@ -6,21 +6,19 @@ using UrlShortener.API.Models.Dtos;
 
 namespace UrlShortener.API.Models.Mappers
 {
-    public class ShortenUrlEndPointMapper(IConfiguration _config, IDynamoDBContext _database)
+    public class ShortenUrlMapper(IConfiguration _config, IDynamoDBContext _database)
         : Mapper<ShortenUrlDto, ShortenUrlRes, UrlsTable>
     {
         public override UrlsTable ToEntity(ShortenUrlDto r)
         {
             var shortCode = GenerateShortCode();
             shortCode.Wait();
-            var expiry = r.Expiration ?? DateTime.MaxValue.AddDays(-7);
             return new()
             {
                 ShortCode = shortCode.Result,
                 LongUrl = r.LongUrl,
-                ExpiryDate = expiry,
+                ExpiryDate = r.Expiration,
                 CreatedAt = DateTime.UtcNow,
-                DeletionDate = expiry.AddDays(7),
                 IsActive = true,
             };
         }

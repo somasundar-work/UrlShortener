@@ -7,13 +7,14 @@ using UrlShortener.API.Models.Dtos;
 
 namespace UrlShortener.API.EndPoints
 {
-    public class GetLongUrlEndPoint(ILogger<GetLongUrlEndPoint> _logger, IDynamoDBContext _database)
-        : Endpoint<GetLongUrlDto, IResult>
+    public class GetLongUrl(ILogger<GetLongUrl> _logger, IDynamoDBContext _database) : Endpoint<GetLongUrlDto, IResult>
     {
         public override void Configure()
         {
-            _logger.LogInformation("Configuring GetLongUrlEndPoint. Method: 'Post', Path: '/api/shorten', Version 1.0");
-            Get("/{ShortCode}");
+            _logger.LogInformation(
+                "Configuring GetLongUrlEndPoint. Method: 'Get', Path: '/api/shortener/#ShortCode#', Version 1.0"
+            );
+            Get("/shortener/{ShortCode}");
             AllowAnonymous();
             // Version(1, 0);
             Options(x => x.WithVersionSet(">>ShortenerApi<<").MapToApiVersion(1.0));

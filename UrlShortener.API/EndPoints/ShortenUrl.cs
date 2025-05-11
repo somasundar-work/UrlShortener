@@ -8,13 +8,15 @@ using UrlShortener.API.Response;
 
 namespace UrlShortener.API.EndPoints
 {
-    public class ShortenUrlEndPoint(ILogger<ShortenUrlEndPoint> _logger, IDynamoDBContext _database)
-        : Endpoint<ShortenUrlDto, Result<ShortenUrlRes>, ShortenUrlEndPointMapper>
+    public class ShortenUrl(ILogger<ShortenUrl> _logger, IDynamoDBContext _database)
+        : Endpoint<ShortenUrlDto, Result<ShortenUrlRes>, ShortenUrlMapper>
     {
         public override void Configure()
         {
-            _logger.LogInformation("Configuring ShortenUrlEndPoint. Method: 'Post', Path: '/api/shorten', Version 1.0");
-            Post("/shorten-url");
+            _logger.LogInformation(
+                "Configuring ShortenUrl EndPoint. Method: 'Post', Path: '/api/shortener', Version 1.0"
+            );
+            Post("/shortener");
             AllowAnonymous();
             // Version(1, 0);
             Options(x => x.WithVersionSet(">>ShortenerApi<<").MapToApiVersion(1.0));
@@ -22,7 +24,7 @@ namespace UrlShortener.API.EndPoints
 
         public override async Task HandleAsync(ShortenUrlDto req, CancellationToken ct)
         {
-            _logger.LogInformation("Handling request for ShortenUrlEndPoint.");
+            _logger.LogInformation("Handling request for ShortenUrl EndPoint.");
             try
             {
                 _logger.LogInformation($"Processing Request: {JsonSerializer.Serialize(req)}");

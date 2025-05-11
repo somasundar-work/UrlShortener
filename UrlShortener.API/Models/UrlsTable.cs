@@ -22,10 +22,6 @@ namespace UrlShortener.API.Models
         [JsonPropertyName("expiresAt")]
         public DateTime? ExpiryDate { get; set; }
 
-        [DynamoDBProperty("US_UT_DD")]
-        [JsonIgnore]
-        public DateTime? DeletionDate { get; set; }
-
         [DynamoDBProperty("US_UT_LA")]
         [JsonPropertyName("lastAccessed")]
         public DateTime? LastAccessed { get; set; }
