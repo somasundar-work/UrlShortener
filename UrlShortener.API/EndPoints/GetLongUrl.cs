@@ -7,11 +7,11 @@ using UrlShortener.API.Models.Dtos;
 
 namespace UrlShortener.API.EndPoints
 {
-    public class GetLongUrl(ILogger<GetLongUrl> _logger, IDynamoDBContext _database) : Endpoint<GetLongUrlDto, IResult>
+    public class GetLongUrl(ILogger<GetLongUrl> _log, IDynamoDBContext _context) : Endpoint<GetLongUrlDto, IResult>
     {
         public override void Configure()
         {
-            _logger.LogInformation(
+            _log.LogInformation(
                 "Configuring GetLongUrlEndPoint. Method: 'Get', Path: '/api/shortener/#ShortCode#', Version 1.0"
             );
             Get("/shortener/{ShortCode}");
@@ -22,25 +22,25 @@ namespace UrlShortener.API.EndPoints
 
         public override async Task HandleAsync(GetLongUrlDto req, CancellationToken ct)
         {
-            _logger.LogInformation("Handling request for GetLongUrlEndPoint.");
-            _logger.LogInformation($"Processing Request: {JsonSerializer.Serialize(req)}");
-            var data = await _database.LoadAsync<UrlsTable>(req.ShortCode, ct);
+            _log.LogInformation("Handling request for GetLongUrlEndPoint.");
+            _log.LogInformation("Processing Request: {SerializedData}", JsonSerializer.Serialize(req));
+            var data = await _context.LoadAsync<UrlsTable>(req.ShortCode, ct);
             if (data is null)
             {
-                _logger.LogInformation("GetLongUrlEndPoint Url Not Found");
+                _log.LogInformation("GetLongUrlEndPoint Url Not Found");
                 await SendAsync(Results.NotFound(), cancellation: ct);
             }
             if (data!.ExpiryDate < DateTime.Today)
             {
-                _logger.LogInformation("GetLongUrlEndPoint Url Expired");
+                _log.LogInformation("GetLongUrlEndPoint Url Expired");
                 await SendAsync(Results.NotFound(), cancellation: ct);
             }
-            _logger.LogInformation($"GetLongUrlEndPoint Redirecting Url: {data.LongUrl}");
+            _log.LogInformation($"GetLongUrlEndPoint Redirecting Url: {data.LongUrl}");
             data.AccessCount += 1;
             data.LastAccessed = DateTime.UtcNow;
-            await _database.SaveAsync(data, ct);
+            await _context.SaveAsync(data, ct);
             await SendRedirectAsync(data.LongUrl, isPermanent: true, allowRemoteRedirects: true);
-            _logger.LogInformation("Response sent successfully.");
+            _log.LogInformation("Response sent successfully.");
         }
     }
 }

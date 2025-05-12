@@ -1,13 +1,18 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using FastEndpoints;
 using FluentValidation;
 using UrlShortener.API.Models.Dtos;
 
 namespace UrlShortener.API.Models.Validators
 {
-    public class ShortenUrlDtoValidator : Validator<ShortenUrlDto>
+    public class EditUrlDtoValidator : Validator<EditUrlDto>
     {
-        public ShortenUrlDtoValidator()
+        public EditUrlDtoValidator()
         {
+            RuleFor(x => x.ShortCode).NotNull().NotEmpty().WithMessage("ShortCode is required!");
             RuleFor(x => x.LongUrl)
                 .NotNull()
                 .NotEmpty()
@@ -18,6 +23,7 @@ namespace UrlShortener.API.Models.Validators
                 .Must(date => date >= DateTime.UtcNow)
                 .When(date => date != null)
                 .WithMessage("Expiration Date must be greater than or equal to todays date");
+            RuleFor(x => x.Status).Must(x => x == true || x == false);
         }
     }
 }

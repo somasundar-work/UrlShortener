@@ -6,7 +6,7 @@ using UrlShortener.API.Models.Dtos;
 
 namespace UrlShortener.API.Models.Mappers
 {
-    public class ShortenUrlMapper(IConfiguration _config, IDynamoDBContext _database)
+    public class ShortenUrlMapper(IConfiguration _config, IDynamoDBContext _context)
         : Mapper<ShortenUrlDto, ShortenUrlRes, UrlsTable>
     {
         public override UrlsTable ToEntity(ShortenUrlDto r)
@@ -32,7 +32,7 @@ namespace UrlShortener.API.Models.Mappers
 
         private async Task<bool> CheckAlias(string customAlias)
         {
-            var url = await _database.LoadAsync<UrlsTable>(customAlias);
+            var url = await _context.LoadAsync<UrlsTable>(customAlias);
             return url == null;
         }
 

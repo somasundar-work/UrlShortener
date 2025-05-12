@@ -14,7 +14,7 @@ using UrlShortener.API.Response;
 
 namespace UrlShortener.API.EndPoints
 {
-    public class ListUrls(ILogger<ListUrls> _log, IDynamoDBContext _database)
+    public class ListUrls(ILogger<ListUrls> _log, IDynamoDBContext _context)
         : Endpoint<PagedQueryRequest, Result<PaginatedResponse<UrlsTable>>>
     {
         public override void Configure()
@@ -29,7 +29,7 @@ namespace UrlShortener.API.EndPoints
         public override async Task HandleAsync(PagedQueryRequest req, CancellationToken ct)
         {
             _log.LogInformation("Handling request for GetLongUrlEndPoint.");
-            _log.LogInformation($"Processing Request: {JsonSerializer.Serialize(req)}");
+            _log.LogInformation("Processing Request: {SerializedData}", JsonSerializer.Serialize(req));
             List<UrlsTable> data = [];
             List<ScanCondition> conditions = [];
             if (!string.IsNullOrWhiteSpace(req.SearchTerm))
@@ -37,7 +37,7 @@ namespace UrlShortener.API.EndPoints
                 ScanCondition scan = new("US_UT_PK", ScanOperator.Contains, req.SearchTerm);
                 conditions.Add(scan);
             }
-            var search = _database.ScanAsync<UrlsTable>(conditions);
+            var search = _context.ScanAsync<UrlsTable>(conditions);
             if (search is not null)
             {
                 var response = await search.GetNextSetAsync(ct);
